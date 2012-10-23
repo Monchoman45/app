@@ -1,4 +1,3 @@
-
 //
 //Controllers
 //
@@ -115,10 +114,6 @@ var NodeChatSocketWrapper = $.createClass(Observable,{
 			break;
     	}
     },
-
-    getAllowedEvents: function() {
-    	return ['updateUser', 'initial', 'chat:add', 'join', 'part', 'kick', 'logout'];
-    }
 });
 
 var NodeRoomController = $.createClass(Observable,{
