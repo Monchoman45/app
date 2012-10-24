@@ -384,7 +384,7 @@ var NodeRoomController = $.createClass(Observable,{
 	onLogout: function(message) {
 		var logoutEvent = new models.LogoutEvent();
 		logoutEvent.mport(message.data);
-		this.onPartBase(logoutEvent.get('leavingUserName'), false);
+		this.onPartBase(logoutEvent.get('name'), false);
 	},
 
 	onKick: function(message) {

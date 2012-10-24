@@ -116,7 +116,7 @@ var STATUS_STATE_AWAY = 'away';
 			if(!options) return;
 			this.set({
 				command: 'logout',
-				leavingUserName: options.leavingUserName
+				name: options.name
 			});
 		}
 	});

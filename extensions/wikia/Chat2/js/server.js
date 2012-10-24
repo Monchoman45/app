@@ -556,7 +556,7 @@ function chatMessage(client, socket, msg){
 
 function logout(client, socket, msg) {
 	var logoutEvent = new models.LogoutEvent({
-		leavingUserName: client.myUser.get('name')
+		name: client.myUser.get('name')
 	});
 	monitoring.incrEventCounter('logouts');
 	// I'm still not sure if we should call kickUserFromRoom here or not...
