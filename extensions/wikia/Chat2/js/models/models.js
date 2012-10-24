@@ -118,7 +118,6 @@ var STATUS_STATE_AWAY = 'away';
 		initialize: function(options){
 			if(!options) return;
 			this.set({
-				command: 'logout',
 				name: options.name
 			});
 		}
