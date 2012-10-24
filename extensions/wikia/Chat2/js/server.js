@@ -894,6 +894,7 @@ function broadcastChatEntryToRoom(client, socket, chatEntry, callback){
 //TODO: use native join/emit from 0.7 sockets.io
 function broadcastToRoom(client, socket, data, users, callback){
 	var roomId = client.roomId;
+	data.timeStamp = (new Date()).getTime();
 	// Get the set of members from redis.
 	logger.debug("Broadcasting to room " + roomId);
 	storage.getUsersInRoom(roomId, function(usernameToUser) {
