@@ -97,8 +97,8 @@ var NodeChatSocketWrapper = $.createClass(Observable,{
 		this.connect();
     },
 
-    onMsgReceived: function(message) {
-    	switch(message.event) {
+	onMsgReceived: function(message) {
+		switch(message.event) {
 			case 'disableReconnect':
 				this.autoReconnect = false;
 				break;
@@ -107,13 +107,12 @@ var NodeChatSocketWrapper = $.createClass(Observable,{
 				break;
 			case 'initial':
 				this.firstConnected = true; //we are 100% sure about conenction
-			default:
-				if(this.firstConnected) {
-					this.fire( message.event, message );
-				}
-			break;
-    	}
-    },
+				break;
+		}
+		if(this.firstConnected) {
+			this.fire( message.event, message );
+		}
+	},
 });
 
 var NodeRoomController = $.createClass(Observable,{
