@@ -593,8 +593,8 @@ function kick(client, socket, msg){
 				sendInlineAlertToClient(client, '', 'chat-kick-cant-kick-moderator', []);
 			} else {
 				var kickEvent = new models.KickEvent({
-					kickedUserName: kickedUser.get('name'),
-					moderatorName: client.myUser.get('name')
+					target: kickedUser.get('name'),
+					performer: client.myUser.get('name')
 				});
 				broadcastToRoom(client, socket, {
 						event: 'kick',
@@ -626,9 +626,10 @@ function ban(client, socket, msg){
 
 	mwBridge.ban(client.roomId, userToBan, time, reason, client.userKey, function(data){
     	var kickEvent = new models.KickEvent({
-    		kickedUserName: userToBan,
+    		target: userToBan,
     		time: time,
-    		moderatorName: client.myUser.get('name')
+		reason: reason,
+    		performer: client.myUser.get('name')
     	});
     	
     	broadcastToRoom(client, socket, { 
@@ -654,11 +655,12 @@ function unban(client, socket, msg) {
 	unbanCommand.mport(msg);
 
 	var userToUnban = unbanCommand.get('userToUnban');
-
-	mwBridge.ban(client.roomId, userToUnban, 0, unbanCommand.get('reason'), client.userKey, function(data) {
+	var reason = unbanCommand.get('reason');
+	mwBridge.ban(client.roomId, userToUnban, 0, reason, client.userKey, function(data) {
 			var unbanEvent = new models.UnbanEvent({
 				performer: client.myUser.get('name'),
-				target: userToUnban
+				target: userToUnban,
+				reason: reason
 			});
 			broadcastToRoom(client, socket, {
 				event: 'unban',

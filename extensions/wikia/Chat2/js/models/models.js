@@ -124,18 +124,23 @@ var STATUS_STATE_AWAY = 'away';
 	});
 
 	models.KickEvent = Backbone.Model.extend({
-		defaults: {
-			"kickedUserName": '',
-			"moderatorName": '',
-			"time": 0
-		},
-
 		initialize: function(info) {
-			if(!info) return;
+			if(!info) {return;}
 			this.set({
-				kickedUserName: info.kickedUserName,
-				moderatorName: info.moderatorName,
-				time: info.time ? info.time:0
+				performer: info.performer,
+				target: info.target
+			});
+		}
+	});
+
+	models.BanEvent = Backbone.Model.extend({
+		initialize: function(info) {
+			if(!info) {return;}
+			this.set({
+				performer: info.performer,
+				target: info.target,
+				time: info.time,
+				reason: info.reason
 			});
 		}
 	});
@@ -145,7 +150,8 @@ var STATUS_STATE_AWAY = 'away';
 			if(!info) {return;}
 			this.set({
 				performer: info.performer,
-				target: info.target
+				target: info.target,
+				reason: info.reason
 			});
 		}
 	});

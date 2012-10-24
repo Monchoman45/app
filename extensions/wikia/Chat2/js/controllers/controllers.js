@@ -403,10 +403,10 @@ var NodeRoomController = $.createClass(Observable,{
 	},
 
 	onBan: function(message) {
-		var kickEvent = new models.KickEvent();
-		kickEvent.mport(message.data);
-		this.onKickOrBan(kickEvent, 'banned');
-		this.banned[kickEvent.get('kickedUserName')] = true;
+		var banEvent = new models.BanEvent();
+		banEvent.mport(message.data);
+		this.onKickOrBan(banEvent, 'banned');
+		this.banned[banEvent.get('target')] = true;
 	},
 
 	onUnban: function(message) {
@@ -417,18 +417,18 @@ var NodeRoomController = $.createClass(Observable,{
 	}
 
 	onKickOrBan: function(kickEvent, mode) {
-		if ( kickEvent.get('kickedUserName') != wgUserName  ) {
+		if ( kickEvent.get('target') != wgUserName  ) {
 			var undoLink = "";
 			if(this.userMain.get('isModerator') && mode == 'banned' ) {
-				undoLink = ' (<a href="#" data-type="ban-undo" data-user="' + this.sanitizeHtml(kickEvent.get('kickedUserName')) + '" >' + $.msg('chat-ban-undolink') + '</a>)';
+				undoLink = ' (<a href="#" data-type="ban-undo" data-user="' + this.sanitizeHtml(kickEvent.get('target')) + '" >' + $.msg('chat-ban-undolink') + '</a>)';
 			}
 
-			this.onPartBase(kickEvent.get('kickedUserName'), true);
-			var newChatEntry = new models.InlineAlert({text: $.msg('chat-user-was-' + mode, this.sanitizeHtml(kickEvent.get('kickedUserName')), this.sanitizeHtml(kickEvent.get('moderatorName')), undoLink ) });
+			this.onPartBase(kickEvent.get('target'), true);
+			var newChatEntry = new models.InlineAlert({text: $.msg('chat-user-was-' + mode, this.sanitizeHtml(kickEvent.get('target')), this.sanitizeHtml(kickEvent.get('performer')), undoLink ) });
 
 			this.model.chats.add(newChatEntry);
 		} else {
-			var newChatEntry = new models.InlineAlert({ text: $.msg('chat-you-were-' + mode, [this.sanitizeHtml(kickEvent.get('moderatorName'))] )});
+			var newChatEntry = new models.InlineAlert({ text: $.msg('chat-you-were-' + mode, [this.sanitizeHtml(kickEvent.get('performer'))] )});
 			this.model.chats.add(newChatEntry);
 			this.model.room.set({
 				'blockedMessageInput': true
