@@ -172,6 +172,7 @@ var NodeRoomController = $.createClass(Observable,{
 		this.socket.bind('part',  $.proxy(this.onPart, this));
 		this.socket.bind('kick',  $.proxy(this.onKick, this));
 		this.socket.bind('ban',  $.proxy(this.onBan, this));
+		this.socket.bind('mod',  $.proxy(this.onMod, this));
 
 		this.socket.bind('logout',  $.proxy(this.onLogout, this));
 
@@ -385,6 +386,13 @@ var NodeRoomController = $.createClass(Observable,{
 		var logoutEvent = new models.LogoutEvent();
 		logoutEvent.mport(message.data);
 		this.onPartBase(logoutEvent.get('name'), false);
+	},
+
+	onMod: function(message) {
+		var modEvent = new models.ModEvent();
+		modEvent.mport(message.data);
+		var newChatEntry = new models.InlineAlert({text: $.msg('chat-inlinealert-a-made-b-chatmod', [this.sanitizeHTML(modEvent.get('performer')), this.sanitizeHTML(modEvent.get('target'))])});
+		this.model.chats.add(newChatEntry);
 	},
 
 	onKick: function(message) {

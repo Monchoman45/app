@@ -652,22 +652,29 @@ function giveChatMod(client, socket, msg){
 	var userNameToPromote = giveChatModCommand.get('userToPromote');
 		
 	mwBridge.giveChatMod(client.roomId, userNameToPromote, client.userKey, function(data){
-		// Build a user that looks like the one that got banned... then kick them!
-			
 		storage.getRoomState(client.roomId, function(nodeChatModel) {	
 			// Initial connection of the user (unless they're already connected).
 			var promotedUser = nodeChatModel.users.findByName(userNameToPromote);
 			promotedUser.set('isModerator', true);
 
-			broadcastInlineAlert(client, socket, 'chat-inlinealert-a-made-b-chatmod', [client.myUser.get('name'), promotedUser.get('name')], function() {
-				storage.setUserData(client.roomId, promotedUser.get('name'), promotedUser.attributes, null, null, function() {
-					// Broadcast the user as an update to everyone in the room
-					broadcastToRoom(client, socket, {
-						event: 'updateUser',
-						data: promotedUser.xport()
+			var modEvent = new models.ModEvent({
+				performer: client.myUser.get('name'),
+				target: promotedUser.get('name')
+			});
+			broadcastToRoom(client, socket, {
+					event: 'mod',
+					data: modEvent.xport()
+				},
+				null,
+				function() {
+					storage.setUserData(client.roomId, promotedUser.get('name'), promotedUser.attributes, null, null, function() {
+						// Broadcast the user as an update to everyone in the room
+						broadcastToRoom(client, socket, {
+							event: 'updateUser',
+							data: promotedUser.xport()
+						});
 					});
 				});
-			});
 		});
 	},function(data){
 		sendInlineAlertToClient(client, data.error, data.errorWfMsg, data.errorMsgParams);
