@@ -189,6 +189,10 @@ function messageDispatcher(client, socket, data){
 						logger.info("Banning user: " + dataObj.attrs.userToBan);
 						ban(client, socket, data);
 						break;
+					case 'unban':
+						logger.info("Unbanning user: " + dataObj.attrs.userToUnban);
+						unban(client, socket, data);
+						break;
 					case 'openprivate':
 						logger.debug( "openPrivateRoom" );
 						openPrivateRoom(client, socket, data);
@@ -641,6 +645,31 @@ function ban(client, socket, msg){
 		sendInlineAlertToClient(client, data.error, data.errorWfMsg, data.errorMsgParams);
 	});
 } // end ban()
+
+/**
+ * Unban the specified user if allowed.
+ */
+function unban(client, socket, msg) {
+	var unbanCommand = new models.UnbanCommand();
+	unbanCommand.mport(msg);
+
+	var userToUnban = unbanCommand.get('userToUnban');
+
+	mwBridge.ban(client.roomId, userToUnban, 0, unbanCommand.get('reason'), client.userKey, function(data) {
+			var unbanEvent = new models.UnbanEvent({
+				performer: client.myUser.get('name'),
+				target: userToUnban
+			});
+			broadcastToRoom(client, socket, {
+				event: 'unban',
+				data: unbanEvent.xport()
+			});
+		},
+		function(data) {
+			sendInlineAlertToClient(client, data.error, data.errorWfMsg, data.errorMsgParams);
+		}
+	);
+} // end unban()
 
 /**
  * Add the chatmoderator group to the user whose username is specified in the command (if allowed).

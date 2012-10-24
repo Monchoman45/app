@@ -172,6 +172,7 @@ var NodeRoomController = $.createClass(Observable,{
 		this.socket.bind('part',  $.proxy(this.onPart, this));
 		this.socket.bind('kick',  $.proxy(this.onKick, this));
 		this.socket.bind('ban',  $.proxy(this.onBan, this));
+		this.socket.bind('unban',  $.proxy(this.onUnban, this));
 		this.socket.bind('mod',  $.proxy(this.onMod, this));
 
 		this.socket.bind('logout',  $.proxy(this.onLogout, this));
@@ -405,14 +406,16 @@ var NodeRoomController = $.createClass(Observable,{
 	onBan: function(message) {
 		var kickEvent = new models.KickEvent();
 		kickEvent.mport(message.data);
-		if(kickEvent.get('time') == 0) {
-			this.onKickOrBan(kickEvent, 'unbanned');
-			this.banned[kickEvent.get('kickedUserName')] = false;
-		} else {
-			this.onKickOrBan(kickEvent, 'banned');
-			this.banned[kickEvent.get('kickedUserName')] = true;
-		}
+		this.onKickOrBan(kickEvent, 'banned');
+		this.banned[kickEvent.get('kickedUserName')] = true;
 	},
+
+	onUnban: function(message) {
+		var unbanEvent = new models.UnbanEvent();
+		unbanEvent.mport(message.data);
+		this.onKickOrBan(unbanEvent, 'unbanned');
+		this.banned[unbanEvent.get('target')] = false;
+	}
 
 	onKickOrBan: function(kickEvent, mode) {
 		if ( kickEvent.get('kickedUserName') != wgUserName  ) {
@@ -494,7 +497,7 @@ var NodeRoomController = $.createClass(Observable,{
 	clickAnchor: function(event) {
 		var target = $(event.target);
 		if(target.attr('data-type') == 'ban-undo') {
-			this.undoBan(target.attr('data-user'), 0, $.msg('chat-log-reason-undo') );
+			this.undoBan(target.attr('data-user'), $.msg('chat-log-reason-undo') );
 			return true;
 		}
 		window.open(target.closest('a').attr("href"));
@@ -813,20 +816,19 @@ var NodeChatController = $.createClass(NodeRoomController,{
 		var chatBanModal = new ChatBanModal(title, okCallback);
 	},
 
-	undoBan: function(name, expires, reason) {
-        if(this.banned[name]) {
-        	this.banned[name] = false;
-        	banCommand = new models.BanCommand({
-    			userToBan: name,
-    			time: expires,
-    			reason: reason
-    		});
+	undoBan: function(name, reason) {
+		if(this.banned[name]) {
+			this.banned[name] = false;
+			unbanCommand = new models.UnbanCommand({
+				userToUnban: name,
+				reason: reason
+			});
 
-        	this.socket.send(banCommand.xport());
-        } else {
+			this.socket.send(banCommand.xport());
+		} else {
 			var newChatEntry = new models.InlineAlert({text: $.msg('chat-ban-cannt-undo') });
 			this.model.chats.add(newChatEntry);
-        }
+		}
 	},
 
 	giveChatMod: function(user){

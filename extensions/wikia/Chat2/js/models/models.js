@@ -90,6 +90,17 @@ var STATUS_STATE_AWAY = 'away';
 		}
 	});
 
+	models.UnbanCommand = models.Command.extend({
+		initialize: function(options) {
+			if(!options) {return;}
+			this.set({
+				command: 'unban',
+				userToUnban: options.userToUnban,
+				reason: options.reason
+			});
+		}
+	});
+
 	models.GiveChatModCommand = models.Command.extend({
 		initialize: function(options){
 			if(!options) return;
@@ -134,6 +145,16 @@ var STATUS_STATE_AWAY = 'away';
 				kickedUserName: info.kickedUserName,
 				moderatorName: info.moderatorName,
 				time: info.time ? info.time:0
+			});
+		}
+	});
+
+	models.UnbanEvent = Backbone.Model.extend({
+		initialize: function(info) {
+			if(!info) {return;}
+			this.set({
+				performer: info.performer,
+				target: info.target
 			});
 		}
 	});
