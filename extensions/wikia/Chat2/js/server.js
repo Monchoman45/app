@@ -462,7 +462,7 @@ function formallyAddClient(client, socket, connectedUser){
 			logger.debug(new Date().getTime());
 			broadcastToRoom(client, socket, {
 				event: 'join',
-				joinData: connectedUser.xport()
+				data: connectedUser.xport()
 			});
 			broadcastUserListToMediaWiki(client, false);		
 		}
