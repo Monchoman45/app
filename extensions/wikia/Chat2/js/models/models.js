@@ -166,6 +166,18 @@ var STATUS_STATE_AWAY = 'away';
 		}
 	});
 
+	models.DisableReconnectEvent = Backbone.Model.extend({
+		defaults: {
+			wfMsg: ''
+		}
+		initialize: function(info) {
+			if(!info) {return;}
+			this.set({
+				wfMsg: info.wfMsg
+			});
+		}
+	});
+
 	/** ChatEntries (messages, alerts) **/
 	models.ChatEntry = Backbone.Model.extend({
 		defaults: {

@@ -417,18 +417,15 @@ function finishConnectingUser(client, socket ){
 
 		if(oldClient && oldClient.userKey != client.userKey ){
 			oldClient.donotSendPart = true;
-			// Send the old client a notice that they're about to be disconnected and why.
-			sendInlineAlertToClient(oldClient, '', 'chat-err-connected-from-another-browser', [], function(){
-				// Looks like we're kicking ourself, but since we're not in the sessionIdsByKey map yet,
-				// this will only kick the other instance of this same user connected to the room.
-				logger.debug('kickUserFromRoom');
-					kickUserFromRoom(oldClient, socket, client.myUser, client.roomId, function(){
-					logger.debug('kickUserFromRoom call back');	
-					// This needs to be done after the user is removed from the room.  Since clientDisconnect() is called asynchronously,
-					// the user is explicitly removed from the room first, then clientDisconnect() is prevented from attempting to remove
-					// the user (since that may get called at some point after formallyAddClient() adds the user intentionally).
-					formallyAddClient(client, socket, connectedUser);
-				});
+			// Looks like we're kicking ourself, but since we're not in the sessionIdsByKey map yet,
+			// this will only kick the other instance of this same user connected to the room.
+			logger.debug('kickUserFromRoom');
+			kickUserFromRoom(oldClient, socket, client.myUser, client.roomId, 'chat-err-connected-from-another-browser' function(){
+				logger.debug('kickUserFromRoom call back');	
+				// This needs to be done after the user is removed from the room.  Since clientDisconnect() is called asynchronously,
+				// the user is explicitly removed from the room first, then clientDisconnect() is prevented from attempting to remove
+				// the user (since that may get called at some point after formallyAddClient() adds the user intentionally).
+				formallyAddClient(client, socket, connectedUser);
 			});
 		} else {
 			//we have double connection for the same window
@@ -716,11 +713,11 @@ function giveChatMod(client, socket, msg){
  * Given a User model and a room id, disconnect the client if that username has a client connected. Also,
  * remove them from the room hash in redis.
  */
-function kickUserFromRoom(client, socket, userToKick, roomId, callback){
+function kickUserFromRoom(client, socket, userToKick, roomId, wfMsg, callback){
 	// Removing the user from the room.
 	logger.debug("Kicking " + userToKick.get('name') + " from room " + roomId);
 	storage.removeUserData(roomId, userToKick.get('name'), function() {
-		kickUserFromServer(client, socket, userToKick, roomId);
+		kickUserFromServer(client, socket, userToKick, roomId, wfMsg);
 
 		if(typeof callback == "function"){
 			callback();
@@ -733,15 +730,19 @@ function kickUserFromRoom(client, socket, userToKick, roomId, callback){
  * This only closes their connection, but does not delete their entry from the room in redis. If you
  * want to remove the user from the room also, use kickUserFromRoom() instead.
  */
-function kickUserFromServer(client, socket, userToKick, roomId){
+function kickUserFromServer(client, socket, userToKick, roomId, wfMsg){
 	// Force-close the kicked user's connection so that they can't interact anymore.
 	logger.debug("Force-closing connection for kicked user: " + userToKick.get('name'));
 	var kickedClientId = sessionIdsByKey[config.getKey_userInRoom(userToKick.get('name'), roomId)];
 
 	if(typeof kickedClientId != 'undefined'){
 		// If we're kicking the user (for whatever reason) they shouldn't try to auto-reconnect.
+		var disableReconnectEvent = new models.DisableReconnectEvent({
+			wfMsg: wfMsg
+		});
 		socket.socket(kickedClientId).json.send({
-			event: 'disableReconnect'
+			event: 'disableReconnect',
+			data: disableReconnectEvent.xport()
 		});
 
 		// To prevent race-conditions, we don't have any users kicked by this function get removed from
