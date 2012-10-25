@@ -139,7 +139,8 @@ function messageDispatcher(client, socket, data){
 	}
 	if(sessionId === false || (typeof sessionId == "undefined") || (sessionId != client.sessionId)){
 		client.json.send({
-				event: 'forceReconnect'
+			event: 'forceReconnect',
+			timeStamp: (new Date()).getTime()
 		});
 		// Message ignored. Log the reason.
 		if(sessionId === false || typeof sessionId == "undefined"){
@@ -367,7 +368,8 @@ function sendRoomDataToClient(client) {
                 logger.debug(nodeChatModel.xport());
                 client.json.send({
                         event: 'initial',
-                        data: nodeChatModel.xport()
+                        data: nodeChatModel.xport(),
+			timeStamp: (new Date()).getTime()
                 });
 	});
 }
@@ -742,7 +744,8 @@ function kickUserFromServer(client, socket, userToKick, roomId, wfMsg){
 		});
 		socket.socket(kickedClientId).json.send({
 			event: 'disableReconnect',
-			data: disableReconnectEvent.xport()
+			data: disableReconnectEvent.xport(),
+			timeStamp: (new Date()).getTime()
 		});
 
 		// To prevent race-conditions, we don't have any users kicked by this function get removed from
@@ -815,7 +818,8 @@ function sendInlineAlertToClient(client, text, wfMsg, msgParams, callback){
 	});
 	client.json.send({
 		event: 'chat:add',
-		data: inlineAlert.xport()
+		data: inlineAlert.xport(),
+		timeStamp: (new Date()).getTime()
 	});
 	if(typeof callback == "function"){
 		callback();
