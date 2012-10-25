@@ -200,7 +200,7 @@ var NodeRoomController = $.createClass(Observable,{
 		var disableReconnectEvent = new models.DisableReconnectEvent();
 		disableReconnectEvent.mport(message.data);
 		if(disableReconnectEvent.wfMsg) {
-			var chatEntry = new models.InlineAlert({text: $.msg(disbleReconnectEvent.wfMsg) });
+			var chatEntry = new models.InlineAlert({wfMsg: disbleReconnectEvent.wfMsg, msgParams: disableReconnectEvent.msgParams});
 			this.model.chats.add(chatEntry);
 		}
 	},

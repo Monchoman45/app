@@ -167,13 +167,11 @@ var STATUS_STATE_AWAY = 'away';
 	});
 
 	models.DisableReconnectEvent = Backbone.Model.extend({
-		defaults: {
-			wfMsg: ''
-		}
 		initialize: function(info) {
 			if(!info) {return;}
 			this.set({
-				wfMsg: info.wfMsg
+				wfMsg: info.wfMsg,
+				msgParams: info.msgParams ? info.msgParams : []
 			});
 		}
 	});
