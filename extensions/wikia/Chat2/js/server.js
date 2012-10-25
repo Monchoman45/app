@@ -624,7 +624,7 @@ function ban(client, socket, msg){
 	var reason = banCommand.get('reason');
 
 	mwBridge.ban(client.roomId, userToBan, time, reason, client.userKey, function(data){
-    	var kickEvent = new models.KickEvent({
+    	var banEvent = new models.BanEvent({
     		target: userToBan,
     		time: time,
 		reason: reason,
@@ -633,7 +633,7 @@ function ban(client, socket, msg){
     	
     	broadcastToRoom(client, socket, { 
 			event: 'ban',
-			data: kickEvent.xport()		
+			data: banEvent.xport()		
 		},
 		null,
 		function() {
