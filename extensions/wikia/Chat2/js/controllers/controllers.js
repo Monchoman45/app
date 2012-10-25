@@ -368,7 +368,7 @@ var NodeRoomController = $.createClass(Observable,{
 			if(this.isMain()) {
 				if(joinedUser.get('name') != wgUserName) {
 					// Create the inline-alert (on client side so that we only display it if the user actually IS new to the room and not just disconnecting/reconnecting).
-					var newChatEntry = new models.InlineAlert({text: $.msg('chat-user-joined', [this.sanitizeHtml(joinedUser.get('name'))] ) });
+					var newChatEntry = new models.InlineAlert({text: $.msg('chat-user-joined', this.sanitizeHtml(joinedUser.get('name')) ) });
 					this.model.chats.add(newChatEntry);
 				}
 			}
@@ -401,7 +401,7 @@ var NodeRoomController = $.createClass(Observable,{
 	onMod: function(message) {
 		var modEvent = new models.ModEvent();
 		modEvent.mport(message.data);
-		var newChatEntry = new models.InlineAlert({text: $.msg('chat-inlinealert-a-made-b-chatmod', [this.sanitizeHTML(modEvent.get('performer')), this.sanitizeHTML(modEvent.get('target'))])});
+		var newChatEntry = new models.InlineAlert({text: $.msg('chat-inlinealert-a-made-b-chatmod', this.sanitizeHTML(modEvent.get('performer')), this.sanitizeHTML(modEvent.get('target')) )});
 		this.model.chats.add(newChatEntry);
 	},
 
@@ -438,7 +438,7 @@ var NodeRoomController = $.createClass(Observable,{
 
 			this.model.chats.add(newChatEntry);
 		} else {
-			var newChatEntry = new models.InlineAlert({ text: $.msg('chat-you-were-' + mode, [this.sanitizeHtml(kickEvent.get('performer'))] )});
+			var newChatEntry = new models.InlineAlert({ text: $.msg('chat-you-were-' + mode, this.sanitizeHtml(kickEvent.get('performer')) )});
 			this.model.chats.add(newChatEntry);
 			this.model.room.set({
 				'blockedMessageInput': true
@@ -472,7 +472,7 @@ var NodeRoomController = $.createClass(Observable,{
 
 			//TODO: move it to other class
 			if(this.isMain() && (connectedUser.get('name') != wgUserName) && (!skipAlert)) {
-				var newChatEntry = new models.InlineAlert({text: $.msg('chat-user-parted', [this.sanitizeHtml(connectedUser.get('name'))] ) });
+				var newChatEntry = new models.InlineAlert({text: $.msg('chat-user-parted', this.sanitizeHtml(connectedUser.get('name')) ) });
 				this.model.chats.add(newChatEntry);
 			}
 
