@@ -285,7 +285,7 @@ var NodeRoomController = $.createClass(Observable,{
 	onKeypress: function(event) {
 		if (this.active && event.which == 13 && !event.shiftKey) {
 			var inputField = $(event.target),
-				inputValue = inputField.val(),
+				inputValue = inputField.val();
 
 			event.preventDefault();
 

@@ -422,8 +422,8 @@ function finishConnectingUser(client, socket ){
 			// Looks like we're kicking ourself, but since we're not in the sessionIdsByKey map yet,
 			// this will only kick the other instance of this same user connected to the room.
 			logger.debug('kickUserFromRoom');
-			kickUserFromRoom(oldClient, socket, client.myUser, client.roomId, 'chat-err-connected-from-another-browser' function(){
-				logger.debug('kickUserFromRoom call back');	
+			kickUserFromRoom(oldClient, socket, client.myUser, client.roomId, 'chat-err-connected-from-another-browser', function(){
+				logger.debug('kickUserFromRoom call back');
 				// This needs to be done after the user is removed from the room.  Since clientDisconnect() is called asynchronously,
 				// the user is explicitly removed from the room first, then clientDisconnect() is prevented from attempting to remove
 				// the user (since that may get called at some point after formallyAddClient() adds the user intentionally).
@@ -838,7 +838,7 @@ function sendErrorToClient(client, command, wfMsg, msgParams) {
 		msgParams: msgParams
 	});
 	client.json.send({
-		event 'error',
+		event: 'error',
 		data: errorEvent.xport(),
 		timeStamp: (new Date()).getTime()
 	});
