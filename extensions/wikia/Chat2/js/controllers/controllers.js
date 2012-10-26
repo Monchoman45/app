@@ -173,6 +173,7 @@ var NodeRoomController = $.createClass(Observable,{
 		this.socket.bind('ban',  $.proxy(this.onBan, this));
 		this.socket.bind('unban',  $.proxy(this.onUnban, this));
 		this.socket.bind('mod',  $.proxy(this.onMod, this));
+		this.socket.bind('error', $.proxy(this.onError, this));
 		this.socket.bind('disableReconnect', $.proxy(this.onDisableReconnect, this));
 
 		this.socket.bind('logout',  $.proxy(this.onLogout, this));
@@ -201,6 +202,15 @@ var NodeRoomController = $.createClass(Observable,{
 		disableReconnectEvent.mport(message.data);
 		if(disableReconnectEvent.wfMsg) {
 			var chatEntry = new models.InlineAlert({wfMsg: disbleReconnectEvent.wfMsg, msgParams: disableReconnectEvent.msgParams});
+			this.model.chats.add(chatEntry);
+		}
+	},
+
+	onError: function(message) {
+		var errorEvent = new models.ErrorEvent();
+		errorEvent.mport(message.data);
+		if(errorEvent.wfMsg) {
+			var chatEntry = new models.InlineAlert({wfMsg: errorEvent.wfMsg, msgParams: errorEvent.msgParams});
 			this.model.chats.add(chatEntry);
 		}
 	},

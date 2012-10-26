@@ -320,7 +320,7 @@ function authConnection(handshakeData, authcallback){
 			}, errback);
 		} else {
 			logger.error("User failed authentication. Error from server was: " + data.errorMsg);
-//			sendInlineAlertToClient(client, data.error, data.errorWfMsg, data.errorMsgParams);
+//			sendErrorToClient(client, data.error, data.errorWfMsg, data.errorMsgParams);
 			logger.debug("Entire data was: ");
 			logger.debug(data);
 			authcallback(null, false); // error first callback style
@@ -587,9 +587,9 @@ function kick(client, socket, msg){
 		var kickedUser = nodeChatModel.users.findByName(userToKick);
 		if (typeof kickedUser !== "undefined") {
 			if ( client.myUser.get('isModerator') !== true) {
-				sendInlineAlertToClient(client, '', 'chat-kick-you-need-permission', []);
+				sendErrorToClient(client, '', 'chat-kick-you-need-permission', []);
 			} else if ( kickedUser.get('isCanGiveChatMod') || ( kickedUser.get('isModerator') === true && client.myUser.get('isCanGiveChatMod') !== true ) ) {
-				sendInlineAlertToClient(client, '', 'chat-kick-cant-kick-moderator', []);
+				sendErrorToClient(client, '', 'chat-kick-cant-kick-moderator', []);
 			} else {
 				var kickEvent = new models.KickEvent({
 					target: kickedUser.get('name'),
@@ -642,7 +642,7 @@ function ban(client, socket, msg){
 		});
 		
 	}, function(data){
-		sendInlineAlertToClient(client, data.error, data.errorWfMsg, data.errorMsgParams);
+		sendErrorToClient(client, data.error, data.errorWfMsg, data.errorMsgParams);
 	});
 } // end ban()
 
@@ -667,7 +667,7 @@ function unban(client, socket, msg) {
 			});
 		},
 		function(data) {
-			sendInlineAlertToClient(client, data.error, data.errorWfMsg, data.errorMsgParams);
+			sendErrorToClient(client, data.error, data.errorWfMsg, data.errorMsgParams);
 		}
 	);
 } // end unban()
@@ -707,7 +707,7 @@ function giveChatMod(client, socket, msg){
 				});
 		});
 	},function(data){
-		sendInlineAlertToClient(client, data.error, data.errorWfMsg, data.errorMsgParams);
+		sendErrorToClient(client, data.error, data.errorWfMsg, data.errorMsgParams);
 	});
 } // end giveChatMod()
 
@@ -825,6 +825,24 @@ function sendInlineAlertToClient(client, text, wfMsg, msgParams, callback){
 		callback();
 	}
 } // end sendInlineAlertToClient()
+
+/**
+ * Sends an error event to the client, non persistent.
+ *
+ * Unlike sendInlineAlertToClient, the error message will always be interpreted as i18n (wfMsg).
+ */
+function sendErrorToClient(client, command, wfMsg, msgParams) {
+	var errorEvent = new models.ErrorEvent({
+		command: command,
+		wfMsg: wfMsg,
+		msgParams: msgParams
+	});
+	client.json.send({
+		event 'error',
+		data: errorEvent.xport(),
+		timeStamp: (new Date()).getTime()
+	});
+} // end sendErrorToClient()
 
 /**
  * Given some text, adds the InlineAlert to the model and broadcasts it out to the other clients in the room.

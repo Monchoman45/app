@@ -176,6 +176,17 @@ var STATUS_STATE_AWAY = 'away';
 		}
 	});
 
+	models.ErrorEvent = Backbone.Model.extend({
+		initialize: function(info) {
+			if(!info) {return;}
+			this.set({
+				command: info.command,
+				wfMsg: info.wfMsg,
+				msgParams: info.msgParams ? info.msgParams : []
+			});
+		}
+	});
+
 	/** ChatEntries (messages, alerts) **/
 	models.ChatEntry = Backbone.Model.extend({
 		defaults: {
