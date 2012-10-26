@@ -112,7 +112,7 @@ var NodeChatSocketWrapper = $.createClass(Observable,{
 		if(this.firstConnected) {
 			this.fire( message.event, message );
 		}
-	},
+	}
 });
 
 var NodeRoomController = $.createClass(Observable,{
@@ -434,7 +434,7 @@ var NodeRoomController = $.createClass(Observable,{
 		unbanEvent.mport(message.data);
 		this.onKickOrBan(unbanEvent, 'unbanned');
 		this.banned[unbanEvent.get('target')] = false;
-	}
+	},
 
 	onKickOrBan: function(kickEvent, mode) {
 		if ( kickEvent.get('target') != wgUserName  ) {
