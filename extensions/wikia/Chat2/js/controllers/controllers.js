@@ -525,7 +525,7 @@ var NodeRoomController = $.createClass(Observable,{
 	clickAnchor: function(event) {
 		var target = $(event.target);
 		if(target.attr('data-type') == 'ban-undo') {
-			this.undoBan(target.attr('data-user'), $.msg('chat-log-reason-undo') );
+			this.unban(target.attr('data-user'), $.msg('chat-log-reason-undo') );
 			return true;
 		}
 		window.open(target.closest('a').attr("href"));
@@ -858,7 +858,7 @@ var NodeChatController = $.createClass(NodeRoomController,{
 		var chatBanModal = new ChatBanModal(title, okCallback);
 	},
 
-	undoBan: function(name, reason) {
+	unban: function(name, reason) {
 		if(this.banned[name]) {
 			this.banned[name] = false;
 			unbanCommand = new models.UnbanCommand({
