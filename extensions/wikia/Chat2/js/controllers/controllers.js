@@ -709,10 +709,13 @@ var NodeChatController = $.createClass(NodeRoomController,{
 			success: $.proxy(function(data) {
 				$().log("Attempting create private room with users " + users.join(','));
 				var data = new models.OpenPrivateRoom({roomId: data.id, users: users});
-				this.baseOpenPrivateRoom(data, true);
-				this.showRoom(data.get('roomId') );
-				this.chats.privates[ data.get('roomId') ].init();
-				//this.socket.send(data.xport());
+				this.fire('sendOpenPrivateRoom', data);
+				if(!data.prevented) {
+					this.baseOpenPrivateRoom(data, true);
+					this.showRoom(data.get('roomId') );
+					this.chats.privates[ data.get('roomId') ].init();
+					//this.socket.send(data.xport());
+				}
 			}, this)
 		});
 		this.viewUsers.hideMenu();
@@ -732,6 +735,8 @@ var NodeChatController = $.createClass(NodeRoomController,{
 	},
 
 	blockPrivate: function(obj) {
+		//FIXME: because this is not a command, it cannot be prevented
+		this.fire('sendBlockPrivate', obj);
 
 		this.blockAllowPrivateAjax(obj.name, 'add', $.proxy(function(data) {
 			var user = this.model.privateUsers.findByName(obj.name);
@@ -753,10 +758,12 @@ var NodeChatController = $.createClass(NodeRoomController,{
 			}
 		}, this));
 
+		//FIXME: this may cause problems if some script calls this function when the user has an unrelated user menu open
 		this.viewUsers.hideMenu();
 	},
 
 	allowPrivate: function(obj) {
+		this.fire('sendAllowPrivate', obj);
 
 		this.blockAllowPrivateAjax(obj.name, 'remove', $.proxy(function(data) {
 			var privateUser = this.model.privateUsers.findByName(obj.name);
@@ -779,27 +786,30 @@ var NodeChatController = $.createClass(NodeRoomController,{
 		this.viewUsers.hideMenu();
 	},
 
+	setStatus: function(state, message) {
+		var setStatusCommand = new models.SetStatusCommand({
+			statusState: state,
+			statusMessage: message
+		});
+		this.fire('sendStatus', setStatusCommand);
+		if(!setStatusCommand.prevented) {
+			this.socket.send(setStatusCommand.xport());
+		}
+	},
+
 	// Set the current user's status to 'away' and set an away message if provided.
 	setAway: function(){
 		var msg = '';
 		$().log("Attempting to go away with message: " + msg);
-		var setStatusCommand = new models.SetStatusCommand({
-			statusState: STATUS_STATE_AWAY,
-			statusMessage: msg
-		});
-		this.socket.send(setStatusCommand.xport());
+		this.setStatus(STATUS_STATE_AWAY, msg);
 	},
 
 	// Set the user as being back from their "away" state (they are here again) and remove the status message.
 	setBack: function(){
 		if( ! this.comingBackFromAway){ // if we have sent this command (but just haven't finished coming back yet), don't keep spamming the server w/this command
-			$().log("Telling the server that I'm back.");
 			this.comingBackFromAway = true;
-			var setStatusCommand = new models.SetStatusCommand({
-				statusState: STATUS_STATE_PRESENT,
-				statusMessage: ''
-			});
-			this.socket.send(setStatusCommand.xport());
+			$().log("Telling the server that I'm back.");
+			this.setStatus(STATUS_STATE_BACK, '');
 		}
 	},
 
@@ -820,25 +830,29 @@ var NodeChatController = $.createClass(NodeRoomController,{
 	kick: function(userToKick) {
 		$().log("Attempting to kick user: " + userToKick);
 		var kickCommand = new models.KickCommand({userToKick: userToKick.name});
-		this.socket.send(kickCommand.xport());
+		this.fire('sendKick', kickCommand);
+		if(!kickCommand.prevented) {
+			this.socket.send(kickCommand.xport());
+		}
 
 		this.viewUsers.hideMenu();
 	},
 
 	ban: function(userToBan){
 		$().log("Attempting to ban user: " + userToBan);
-		var self = this;
 
-		self.viewUsers.hideMenu();
+		this.viewUsers.hideMenu();
 		var title = $.msg('chat-ban-modal-heading'),
 			okCallback = function(expires, reason) {
-                banCommand = new models.BanCommand({
+				banCommand = new models.BanCommand({
 					userToBan: userToBan.name,
 					time: expires,
 					reason: reason
 				});
-
-				self.socket.send(banCommand.xport());
+				this.fire('sendBan', banCommand);
+				if(!banCommand.prevented) {
+					this.socket.send(banCommand.xport());
+				}
 			};
 
 		var chatBanModal = new ChatBanModal(title, okCallback);
@@ -851,8 +865,10 @@ var NodeChatController = $.createClass(NodeRoomController,{
 				userToUnban: name,
 				reason: reason
 			});
-
-			this.socket.send(banCommand.xport());
+			this.fire('sendUnban', unbanCommand);
+			if(!unbanCommand.prevented) {
+				this.socket.send(banCommand.xport());
+			}
 		} else {
 			var newChatEntry = new models.InlineAlert({text: $.msg('chat-ban-cannt-undo') });
 			this.model.chats.add(newChatEntry);
@@ -862,7 +878,10 @@ var NodeChatController = $.createClass(NodeRoomController,{
 	giveChatMod: function(user){
 		$().log("Attempting to give chat mod to user: " + user.name);
 		var giveChatModCommand = new models.GiveChatModCommand({userToPromote: user.name});
-		this.socket.send(giveChatModCommand.xport());
+		this.fire('sendGiveChatMod', giveChatModCommand);
+		if(!giveChatModCommand.prevented) {
+			this.socket.send(giveChatModCommand.xport());
+		}
 
 		this.viewUsers.hideMenu();
 	},

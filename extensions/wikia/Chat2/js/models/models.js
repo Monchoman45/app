@@ -28,8 +28,13 @@ var STATUS_STATE_AWAY = 'away';
 	/** Commands **/
 	models.Command = Backbone.Model.extend({
 		defaults: {
-			'msgType': 'command', // used by the server to determine how to handle one of these objects.
-			'command': ''
+			msgType: 'command', // used by the server to determine how to handle one of these objects.
+			command: '',
+			prevented: false
+		},
+		//This is called by listeners on the client if they want to tell the native system not to send the command.
+		prevent: function() {
+			this.set({prevented: true});
 		}
 	});
 
