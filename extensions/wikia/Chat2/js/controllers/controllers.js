@@ -180,8 +180,9 @@ var NodeRoomController = $.createClass(Observable,{
 
 		this.viewDiscussion = new NodeChatDiscussion({model: this.model, el: $('body'), roomId: roomId});
 		this.viewDiscussion.bind('clickAnchor', $.proxy(this.clickAnchor, this) );
-		this.viewDiscussion.bind('sendMessage', $.proxy(this.sendMessage, this) );
-		this.viewDiscussion.bind('updateCharacterCount', $.proxy(this.updateCharacterCount, this) );
+		this.viewDiscussion.bind('inputKeypress', $.proxy(this.onKeypress, this) );
+		this.viewDiscussion.bind('inputKeyup', $.proxy(this.updateCharacterCount, this) );
+		this.viewDiscussion.bind('inputKeydown', $.proxy(this.updateCharacterCount, this) );
 
 		//TODO: move to view ??
 		$(window).focus($.proxy(function(e) {// set focus on the text input
@@ -281,42 +282,43 @@ var NodeRoomController = $.createClass(Observable,{
 		this.viewDiscussion.getTextInput().focus();
 	},
 
-	sendMessage: function(event) {
+	onKeypress: function(event) {
 		if (this.active && event.which == 13 && !event.shiftKey) {
 			var inputField = $(event.target),
 				inputValue = inputField.val(),
-				inputValueLength = inputValue.length;
 
 			event.preventDefault();
 
 			// Prevent empty messages or messages with too many characters
-			if (inputValue.length && inputValueLength <= this.maxCharacterLimit) {
-				var chatEntry = new models.ChatEntry({
-					roomId: this.roomId,
-					name: wgUserName,
-					text: inputValue
-				});
-
-				// Private message
-				if( !this.isMain() ) {
-					if( this.afterInitQueue.length < 1 || this.model.users.length < 2 ){
-						this.mainController.socket.send( this.model.privateRoom.xport() );
-					}
-					if( !this.isInitialized  ) {
-						this.afterInitQueue.push(chatEntry.xport());
-						//temp chat entry in case of slow connection time
-						chatEntry.set({temp : true, avatarSrc: wgAvatarUrl });
-						this.model.chats.add(chatEntry);
-					} else {
-						this.socket.send(chatEntry.xport());
-					}
-				} else {
-					this.socket.send(chatEntry.xport());
-				}
-
+			if (inputValue.length && inputValue.length <= this.maxCharacterLimit) {
+				this.sendMessage(inputValue);
 				inputField.val('').focus();
 				$('body').removeClass('warn limit-near limit-reached');
 			}
+		}
+	},
+
+	sendMessage: function(text) {
+		var chatEntry = new models.ChatEntry({
+			roomId: this.roomId,
+			text: text
+		});
+
+		// Private message
+		if( !this.isMain() ) {
+			if( this.afterInitQueue.length < 1 || this.model.users.length < 2 ){
+				this.mainController.socket.send( this.model.privateRoom.xport() );
+			}
+			if( !this.isInitialized  ) {
+				this.afterInitQueue.push(chatEntry.xport());
+				//temp chat entry in case of slow connection time
+				chatEntry.set({temp : true, avatarSrc: wgAvatarUrl });
+				this.model.chats.add(chatEntry);
+			} else {
+				this.socket.send(chatEntry.xport());
+			}
+		} else {
+			this.socket.send(chatEntry.xport());
 		}
 	},
 

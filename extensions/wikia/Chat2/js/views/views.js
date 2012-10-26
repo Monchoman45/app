@@ -340,9 +340,9 @@ var NodeChatDiscussion = Backbone.View.extend({
 	},
 
 	triggerEvents: {
-		"keyup #Write [name='message']": "updateCharacterCount",
-		"keydown #Write [name='message']": "updateCharacterCount",
-		"keypress #Write [name='message']": "sendMessage"
+		"keyup #Write [name='message']": "inputKeyup",
+		"keydown #Write [name='message']": "inputKeydown",
+		"keypress #Write [name='message']": "inputKeypress"
 	},
 
 	clear: function(chat) {
