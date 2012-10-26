@@ -299,10 +299,17 @@ var NodeRoomController = $.createClass(Observable,{
 	},
 
 	sendMessage: function(text) {
+		if(!text) {return;}
+
 		var chatEntry = new models.ChatEntry({
 			roomId: this.roomId,
 			text: text
 		});
+
+		this.fire('sendMessage', chatEntry);
+		//listeners may change the text on the chatEntry (evaluate commands) or blank it entirely
+		//check to make sure we aren't unintentionally sending a blank line
+		if(!chatEntry.text) {return;}
 
 		// Private message
 		if( !this.isMain() ) {
