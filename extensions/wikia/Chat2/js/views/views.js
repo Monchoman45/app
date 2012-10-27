@@ -405,13 +405,17 @@ var NodeChatUsers = Backbone.View.extend({
             e.preventDefault();
         },this));
 
-		this.delegateEventsToTrigger(this.triggerEvents, function(e) {
-    		e.preventDefault();
-    		var name = $(e.target).closest('.UserStatsMenu').find('.username').text();
-    		if(!(name.length > 0)) {
-    			name = $(e.target).closest('li').find('.username').first().text();
-    		}
-    		return { 'name': name, 'event': e, 'target': $(e.target).closest('li')};
+		this.delegateEventsToTrigger(this.actionTriggerEvents, function(e) {
+    			e.preventDefault();
+    			var name = $(e.target).closest('.UserStatsMenu').find('.username').text();
+    			if(!(name.length > 0)) {
+    				name = $(e.target).closest('li').find('.username').first().text();
+    			}
+    			return name;
+		});
+		this.delegateEventsToTrigger(this.clickTriggerEvents, function(e) {
+    			e.preventDefault();
+    			return $(e.target).closest('li');
 		});
 
 		$("#Rail").on("click", '.wordmark', function(event) {
@@ -431,15 +435,18 @@ var NodeChatUsers = Backbone.View.extend({
 		});
 	},
 
-	triggerEvents: {
-			"click .kick": "kick",
-			"click .ban": "ban",
-			"click .give-chat-mod": "giveChatMod",
-			"click .private-block": "blockPrivateMessage",
-			"click .private-allow": "allowPrivateMessage",
-			"click .private": "showPrivateMessage",
-			"click #WikiChatList li": "mainListClick",
-			"click #PrivateChatList li": "privateListClick"
+	actionTriggerEvents: {
+		"click .kick": "kick",
+		"click .ban": "ban",
+		"click .give-chat-mod": "giveChatMod",
+		"click .private-block": "blockPrivateMessage",
+		"click .private-allow": "allowPrivateMessage",
+		"click .private": "showPrivateMessage"
+	},
+
+	clickTriggerEvents: {
+		"click #WikiChatList li": "mainListClick",
+		"click #PrivateChatList li": "privateListClick"
 	},
 
  	clearPrivateChatActive: function() {

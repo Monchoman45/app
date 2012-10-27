@@ -605,11 +605,12 @@ var NodeChatController = $.createClass(NodeRoomController,{
 		return false;
 	},
 
-	mainListClick: function(obj) {
-		var user = this.model.users.findByName(obj.name);
+	mainListClick: function(li) {
+		var name = li.find('.username').first().text();
+		var user = this.model.users.findByName(name);
 		var userMain = this.model.users.findByName(wgUserName);
-		var userYouAreBlockedBy = this.model.blockedByUsers.findByName(obj.name);
-		var userPrivate = this.model.privateUsers.findByName(obj.name);
+		var userYouAreBlockedBy = this.model.blockedByUsers.findByName(name);
+		var userPrivate = this.model.privateUsers.findByName(name);
 
 		var actions = {
 			regular: ['profile', 'contribs'],
@@ -640,11 +641,12 @@ var NodeChatController = $.createClass(NodeRoomController,{
                         actions.admin.push('ban');
 		}
 
-		this.viewUsers.showMenu(obj.target, actions);
+		this.viewUsers.showMenu(li, actions);
 	},
 
-	privateListClick: function(obj) {
-		var user = this.model.privateUsers.findByName(obj.name);
+	privateListClick: function(li) {
+		var name = li.find('.username').first().text();
+		var user = this.model.privateUsers.findByName(name);
 
 		var actions = { regular: ['profile', 'contribs'] };
 		if(user.get('isStaff') === false) {
@@ -652,8 +654,8 @@ var NodeChatController = $.createClass(NodeRoomController,{
 		}
 
 		//, 'private-close'
-		if(!this.privateMessage(obj)) {
-			this.viewUsers.showMenu(obj.target, actions);
+		if(!this.privateMessage(name)) {
+			this.viewUsers.showMenu(li, actions);
 		}
 	},
 
@@ -680,11 +682,11 @@ var NodeChatController = $.createClass(NodeRoomController,{
 		return true;
 	},
 
-	privateMessage: function(obj) {
+	privateMessage: function(name) {
 		var connectedUser = false;
 		var userData;
 		this.model.privateUsers.find(function(userEl){
-			if(userEl.get('name') == obj.name) {
+			if(userEl.get('name') == name) {
 				connectedUser = true;
 				userData = userEl;
 			}
@@ -693,7 +695,7 @@ var NodeChatController = $.createClass(NodeRoomController,{
 		if(connectedUser) {
 			return this.showRoom(userData.get('roomId'))
 		} else {
-			this.openPrivateChat([obj.name]);
+			this.openPrivateChat([name]);
 			return true;
 		}
 	},
@@ -734,13 +736,13 @@ var NodeChatController = $.createClass(NodeRoomController,{
 		});
 	},
 
-	blockPrivate: function(obj) {
+	blockPrivate: function(name) {
 		//FIXME: because this is not a command, it cannot be prevented
-		this.fire('sendBlockPrivate', obj);
+		this.fire('sendBlockPrivate', name);
 
-		this.blockAllowPrivateAjax(obj.name, 'add', $.proxy(function(data) {
-			var user = this.model.privateUsers.findByName(obj.name);
-			var userClear = new models.User({'name': obj.name});
+		this.blockAllowPrivateAjax(name, 'add', $.proxy(function(data) {
+			var user = this.model.privateUsers.findByName(name);
+			var userClear = new models.User({'name': name});
 
 			this.model.blockedUsers.add(userClear);
 			if(typeof(user) != "undefined") {
@@ -762,12 +764,12 @@ var NodeChatController = $.createClass(NodeRoomController,{
 		this.viewUsers.hideMenu();
 	},
 
-	allowPrivate: function(obj) {
-		this.fire('sendAllowPrivate', obj);
+	allowPrivate: function(name) {
+		this.fire('sendAllowPrivate', name);
 
-		this.blockAllowPrivateAjax(obj.name, 'remove', $.proxy(function(data) {
-			var privateUser = this.model.privateUsers.findByName(obj.name);
-			var user = this.model.blockedUsers.findByName(obj.name);
+		this.blockAllowPrivateAjax(name, 'remove', $.proxy(function(data) {
+			var privateUser = this.model.privateUsers.findByName(name);
+			var user = this.model.blockedUsers.findByName(name);
 
 			if(typeof(user) != "undefined") {
 				this.model.blockedUsers.remove(user);
@@ -827,9 +829,9 @@ var NodeChatController = $.createClass(NodeRoomController,{
 		}
 	},
 
-	kick: function(userToKick) {
-		$().log("Attempting to kick user: " + userToKick);
-		var kickCommand = new models.KickCommand({userToKick: userToKick.name});
+	kick: function(name) {
+		$().log("Attempting to kick user: " + name);
+		var kickCommand = new models.KickCommand({userToKick: name});
 		this.fire('sendKick', kickCommand);
 		if(!kickCommand.prevented) {
 			this.socket.send(kickCommand.xport());
@@ -838,14 +840,14 @@ var NodeChatController = $.createClass(NodeRoomController,{
 		this.viewUsers.hideMenu();
 	},
 
-	ban: function(userToBan){
-		$().log("Attempting to ban user: " + userToBan);
+	ban: function(name) {
+		$().log("Attempting to ban user: " + name);
 
 		this.viewUsers.hideMenu();
 		var title = $.msg('chat-ban-modal-heading'),
 			okCallback = function(expires, reason) {
 				banCommand = new models.BanCommand({
-					userToBan: userToBan.name,
+					userToBan: name,
 					time: expires,
 					reason: reason
 				});
@@ -875,9 +877,9 @@ var NodeChatController = $.createClass(NodeRoomController,{
 		}
 	},
 
-	giveChatMod: function(user){
-		$().log("Attempting to give chat mod to user: " + user.name);
-		var giveChatModCommand = new models.GiveChatModCommand({userToPromote: user.name});
+	giveChatMod: function(name) {
+		$().log("Attempting to give chat mod to user: " + name);
+		var giveChatModCommand = new models.GiveChatModCommand({userToPromote: name});
 		this.fire('sendGiveChatMod', giveChatModCommand);
 		if(!giveChatModCommand.prevented) {
 			this.socket.send(giveChatModCommand.xport());
