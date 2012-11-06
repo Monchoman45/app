@@ -173,6 +173,10 @@ function messageDispatcher(client, socket, data){
 				logger.debug("Dispatching to message handler.");
 				chatMessage(client, socket, data);
 				break;
+			case 'ctcp':
+				logger.debug('Forwarding CTCP to ' + dataObj.attrs.target)
+				ctcpMessage(client, socket, data);
+				break;
 			case 'command':
 				switch(dataObj.attrs.command){ // all commands should be in lowercase
 					case 'initquery':
@@ -556,6 +560,24 @@ function chatMessage(client, socket, msg){
     monitoring.incrEventCounter('chat_messages');
 	storeAndBroadcastChatEntry(client, socket, chatEntry);
 } // end chatMessage()
+
+/**
+ * Forward a CTCP message from a client. See comment on models.CTCPMessage for more
+ */
+function ctcpMessage(client, socket, msg) {
+	var ctcpMessage = new models.CTCPMessage();
+	ctcpMessage.mport(msg);
+
+	//set the sender to prevent spoofing
+	ctcpMessage.set('sender', client.myUser.get('name'));
+
+	//TODO: This is accomplished by broadcasting to every user in the room... with the same name as the target.
+	//Not ideal, but this is a user contribution - and as someone without a devbox, this is much less likely to cause an error.
+	broadcastToRoom(client, socket, {
+		event: 'ctcp',
+		data: ctcpMessage.xport()
+	}, [target]);
+}
 
 function logout(client, socket, msg) {
 	var logoutEvent = new models.LogoutEvent({

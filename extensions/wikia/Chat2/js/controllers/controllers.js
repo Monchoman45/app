@@ -166,6 +166,7 @@ var NodeRoomController = $.createClass(Observable,{
 		this.socket.bind('join',  $.proxy(this.onJoin, this));
 		this.socket.bind('initial',  $.proxy(this.onInitial, this));
 		this.socket.bind('chat:add',  $.proxy(this.onChatAdd, this));
+		this.socket.bind('ctcp', $.proxy(this.onCTCP, this));
 
 		this.socket.bind('reConnectFail',  $.proxy(this.onReConnectFail, this));
 		this.socket.bind('part',  $.proxy(this.onPart, this));
@@ -360,6 +361,25 @@ var NodeRoomController = $.createClass(Observable,{
 		if( this.model.chats.length > 1000 ){
 			var first = this.model.chats.at(0);
 			this.model.chats.remove(first);
+		}
+	},
+
+	onCTCP: function(message) {
+		var ctcpMessage = new models.CTCPMessage();
+		ctcpMessage.mport(message.data);
+
+		//All we're going to do with this is reply with 'Special:Chat' if type == version, nothing else has any meaning to us.
+		if(ctcpMessage.get('type').toLowerCase() == 'version') {
+			var ctcpReply = new models.CTCPMessage({
+				target: ctcpMessage.get('sender'),
+				data: {
+					//Our version number isn't very important, but the version number of a bot might be very
+					//important to other bots. Other bots can use this format to reply with a useful version
+					//number, which our reply should match. In other words, this is future proof.
+					client: 'Special:Chat',
+					version: 0
+				}
+			});
 		}
 	},
 

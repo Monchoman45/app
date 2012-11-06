@@ -225,6 +225,34 @@ var STATUS_STATE_AWAY = 'away';
 		}
 	});
 
+	/**
+	 * CTCP (client to client protocol) comes from IRC, where it is used to get arbitrary data from other clients.
+	 * A CTCP message is sent from one client to the server, which simply forwards it to the target client,
+	 * which can evaluate the message however it chooses. Most IRC clients implement at a minimum VERSION, for which
+	 * the reply should be the name of the client and the version number, but aren't required to. A CTCP message only
+	 * means something if both clients think it means something, hopefully the same thing.
+	 *
+	 * For Wikia chat, CTCP is mostly for the benefit of bots - PMs are a heavyweight way of talking to other bots,
+	 * whereas CTCP allows communication without making a new socket; it also makes it easier to identify other bots.
+	 *
+	 * 'target' is the user who should receive the message.
+	 * 'sender' is the sending user. The server will set this with the actual sender to prevent spoofing.
+	 * 'type' is used by the receiving client to identify what the point of the message is (such as 'version').
+	 * 'data' is additional information for the client.
+	 */
+	models.CTCPMessage = Backbone.Model.extend({
+		initialize: function(options) {
+			if(!options) {return;}
+			this.set({
+				msgType: 'ctcp',
+				target: options.target,
+				sender: options.sender,
+				type: options.type,
+				data: options.data
+			});
+		}
+	});
+
 
 	var modelInit = function() {
 		this.chats = new models.ChatCollection();
